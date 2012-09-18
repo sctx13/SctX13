@@ -5,7 +5,7 @@
 ___author___   = 'Cédric Montero'
 ___contact___  = 'cedric.montero@esrf.fr'
 ___copyright__ = '2012, European Synchrotron Radiation Facility, ESRF'
-___version___  = '0'
+___version___  = '0.0'
 
 """ External modules (preliminary installation could be require) """
 import specfile#ESRF module to explore Spec files (contact : jerome.kieffer@esrf.fr)
