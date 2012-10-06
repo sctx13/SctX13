@@ -55,40 +55,48 @@ def get_ScanMeasurement(sf,scannumber,motorlabel):
 		measurement = data[pos_motor]
 	return measurement
 
-def get_ScanMeasurementsAlongTime(sf,scannumber,motorlabel):
-	"""
-	Retrieve the measurements of a motor label against time
-	@type sf : specfile object from specfile module
-	@type scannumber : integer
-	@type motorlabel : string
-	"""
-	#TODO : rewrite this function based on the get_ScanMeasurement function
-	def get_SingleScanMeasurementAlongTime(scannumber):
-		# Store the scan data:
-		scan       = sf.select(str(scannumber))
-		data       = scan.data()
-		# Find 'Epoch' label and motorlabel column position:
-		labelslist = scan.alllabels()
-		pos_epoch  = [idx for idx in range(len(labelslist)) if labelslist[idx] == 'Epoch'][0]
-		pos_motor  = [idx for idx in range(len(labelslist)) if labelslist[idx] == motorlabel][0]
-		# Calculate time elements of the measurements:
-		eptime     = sf.epoch() + numpy.array(data[pos_epoch,:])# Create a numpy 1D array with unix epoch time of each measurement
-		schedule   = numpy.array([datetime.datetime.fromtimestamp(values) for values in eptime])# Create a numpy 1D array of datetime instant of each measurement
-		if pos_motor == []:
-			print 'ERROR : The motorlabel required does not exist in the list of the labels of this scan.'
-		else:
-			measurement = data[pos_motor]
-		return schedule,measurement
-	if scannumber == '*':
-		schedule    = numpy.array([])
-		measurement = numpy.array([])
-		for scan in range(1,get_NumberOfScans(sf)+1):
-			scan_schedule,scan_measurement = get_SingleScanMeasurementAlongTime(scan)
-			schedule = numpy.hstack((schedule,scan_schedule))
-			measurement = numpy.hstack((measurement,scan_measurement))
-	else:
-		schedule,measurement = get_SingleScanMeasurementAlongTime(scannumber)
-	return schedule,measurement
+def get_ScanMeasurementsAlongTime(sf,scannumber,motorlabels):
+    """
+    Retrieve the measurements of one or more  motor label against time
+    @param specfile        sf : specfile object from specfile module
+    @param integer scannumber : integer value of scan number to use or '*' for all scans
+    @param string/tupleofstring motorlabel : string or tuple of stings
+    """
+    #TODO : rewrite this function based on the get_ScanMeasurement function
+    def get_SingleScanMeasurementAlongTime(scannumber):
+        # Store the scan data:
+        scan       = sf.select(str(scannumber))
+        data       = scan.data()
+        # Find 'Epoch' label and motorlabel column position:
+        labelslist = scan.alllabels()
+        pos_epoch  = [idx for idx in range(len(labelslist)) if labelslist[idx] == 'Epoch'][0]
+
+        if type(motorlabels) == 'str':
+            pos_motor  = [idx for idx in range(len(labelslist)) if labelslist[idx] == motorlabels][0]
+        else:
+            pos_motor = []
+            for nb in range(0,len(motorlabels)):
+                posmot = [idx for idx in range(len(labelslist)) if labelslist[idx] == motorlabels[nb]][0]
+                pos_motor.append(posmot)
+
+        # Calculate time elements of the measurements:
+        eptime     = sf.epoch() + numpy.array(data[pos_epoch,:])# Create a numpy 1D array with unix epoch time of each measurement
+        schedule   = numpy.array([datetime.datetime.fromtimestamp(values) for values in eptime])# Create a numpy 1D array of datetime instant of each measurement
+        if pos_motor == []:
+            print 'ERROR : The motorlabel required does not exist in the list of the labels of this scan.'
+        else:
+            measurement = data[pos_motor]
+        return schedule,measurement
+    if scannumber == '*':
+        schedule    = numpy.array([])
+        measurement = numpy.array([])
+        for scan in range(1,get_NumberOfScans(sf)+1):
+            scan_schedule,scan_measurement = get_SingleScanMeasurementAlongTime(scan)
+            schedule = numpy.hstack((schedule,scan_schedule))
+            measurement = numpy.hstack((measurement,scan_measurement))
+    else:
+        schedule,measurement = get_SingleScanMeasurementAlongTime(scannumber)
+    return schedule,measurement
 
 def get_ScanExposureTime(sf,scannumber):
 	"""
